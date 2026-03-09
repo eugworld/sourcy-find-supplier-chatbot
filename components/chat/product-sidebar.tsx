@@ -54,6 +54,11 @@ export function ProductSidebar({
                   alt={product.productName}
                   className="h-44 w-full rounded-t-xl object-cover"
                   loading="lazy"
+                  onError={(event) => {
+                    event.currentTarget.src = '/sourcy-si-icon.svg';
+                    event.currentTarget.className =
+                      'h-44 w-full rounded-t-xl bg-slate-100 object-contain p-6';
+                  }}
                 />
               ) : null}
               <div className="space-y-1 p-3">

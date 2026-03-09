@@ -25,6 +25,10 @@ export function ProductCard({
             alt={productName}
             className="h-full w-full object-cover"
             loading="lazy"
+            onError={(event) => {
+              event.currentTarget.src = '/sourcy-si-icon.svg';
+              event.currentTarget.className = 'h-full w-full bg-slate-100 object-contain p-6';
+            }}
           />
         </div>
       ) : (

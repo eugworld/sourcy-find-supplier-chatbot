@@ -19,7 +19,7 @@ import {
   searchSuppliersTool,
 } from '@/lib/tools';
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 const requestSchema = z.object({
   messages: z.array(z.custom<UIMessage>()),

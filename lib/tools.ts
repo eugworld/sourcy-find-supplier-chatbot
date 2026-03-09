@@ -19,6 +19,24 @@ function getPostgrestAuthHeaders(jwt: string | undefined): Record<string, string
   };
 }
 
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit,
+  timeoutMs: number,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function getTemporarySupplierFallback(): Promise<string> {
   const postgrestJwt = process.env.POSTGREST_JWT;
   const url =
@@ -103,15 +121,19 @@ export const searchSuppliersTool = tool({
   }),
   execute: async ({ question, query_type }) => {
     try {
-      const response = await fetch(SOURCY_SUPPLIER_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question,
-          query_type,
-          node_name: SUPPLIER_NODE_NAME,
-        }),
-      });
+      const response = await fetchWithTimeout(
+        SOURCY_SUPPLIER_API_URL,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question,
+            query_type,
+            node_name: SUPPLIER_NODE_NAME,
+          }),
+        },
+        query_type === QUERY_TYPES.DEEP ? 120_000 : 45_000,
+      );
 
       if (!response.ok) {
         return getTemporarySupplierFallback();
@@ -133,7 +155,11 @@ export const searchSuppliersTool = tool({
       }
 
       return JSON.stringify(answer);
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return 'Search timed out while waiting for supplier intelligence API. Please retry or use Fast Search.';
+      }
+
       return getTemporarySupplierFallback();
     }
   },
@@ -165,6 +191,44 @@ function toStringValue(value: unknown): string | null {
   }
 
   return null;
+}
+
+function normalizeImageUrl(url: string | null): string | null {
+  if (!url) {
+    return null;
+  }
+
+  if (url.startsWith('//')) {
+    return `https:${url}`;
+  }
+
+  if (url.startsWith('http://')) {
+    return `https://${url.slice('http://'.length)}`;
+  }
+
+  return url;
+}
+
+function pickFirstImageUrl(rawImageUrls: unknown): string | null {
+  if (Array.isArray(rawImageUrls)) {
+    return normalizeImageUrl(toStringValue(rawImageUrls[0]));
+  }
+
+  const asString = toStringValue(rawImageUrls);
+  if (!asString) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(asString) as unknown;
+    if (Array.isArray(parsed)) {
+      return normalizeImageUrl(toStringValue(parsed[0]));
+    }
+  } catch {
+    // fall through and treat as direct URL string
+  }
+
+  return normalizeImageUrl(asString);
 }
 
 function buildProductApiUrl(productId: string): string {
@@ -242,20 +306,28 @@ export const lookupSupplierProductsTool = tool({
       `&limit=${product_limit}`;
 
     const [supplierResponse, productResponse] = await Promise.all([
-      fetch(suppliersUrl, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          ...getPostgrestAuthHeaders(postgrestJwt),
+      fetchWithTimeout(
+        suppliersUrl,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            ...getPostgrestAuthHeaders(postgrestJwt),
+          },
         },
-      }),
-      fetch(productsUrl, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          ...getPostgrestAuthHeaders(postgrestJwt),
+        20_000,
+      ),
+      fetchWithTimeout(
+        productsUrl,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            ...getPostgrestAuthHeaders(postgrestJwt),
+          },
         },
-      }),
+        20_000,
+      ),
     ]);
 
     if (!supplierResponse.ok || !productResponse.ok) {
@@ -322,9 +394,7 @@ export const lookupSupplierProductsTool = tool({
             toStringValue(product.title) ??
             'Unnamed product',
           product_url: toStringValue(product.link),
-          product_image_url: Array.isArray(product.image_urls)
-            ? toStringValue(product.image_urls[0])
-            : null,
+          product_image_url: pickFirstImageUrl(product.image_urls),
           product_api_url: buildProductApiUrl(productId),
           currency: toStringValue(product.currency),
           sale_count: toStringValue(product.sale_count),
