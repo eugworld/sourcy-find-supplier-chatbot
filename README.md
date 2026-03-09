@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sourcy Supplier Intelligence Chatbot
 
-## Getting Started
+Standalone Next.js chatbot prototype for supplier search and evaluation. The app uses Gemini (via Vercel AI SDK) plus one server-side tool that queries Sourcy Supplier Intelligence API.
 
-First, run the development server:
+## Stack
+
+- Next.js App Router (TypeScript)
+- Tailwind CSS v4
+- `ai` + `@ai-sdk/react` + `@ai-sdk/google`
+- Single tool: `search_suppliers`
+
+## Setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Create `.env.local`:
+
+```bash
+GOOGLE_GENERATIVE_AI_API_KEY=your-gemini-api-key
+```
+
+3. Start dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Streaming chat with visible Gemini reasoning
+- Tool call progress UI while Sourcy API is executing
+- Fast vs Deep query mode (`RAG_COMPLETION` / `GRAPH_COMPLETION_CONTEXT_EXTENSION`)
+- Supplier card rendering from assistant output
+- Dummy local auth (in-memory users + localStorage auth state)
+- Chat limit gates (anonymous: 2, authenticated: 5/day)
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `app/api/chat/route.ts`: streaming chat route + Gemini/tool orchestration
+- `lib/tools.ts`: `search_suppliers` tool definition
+- `lib/prompts.ts`: Sourcy system prompt
+- `components/chat/*`: chat UI, thinking/tool blocks, supplier cards
+- `components/auth/*`: auth provider + login modal
+- `lib/chat-limits.ts`, `hooks/use-chat-limit.ts`: client-side usage limits
