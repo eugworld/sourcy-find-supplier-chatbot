@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 
+import { toImageProxyUrl } from '@/lib/image-proxy';
 import type { ProductCardData } from '@/lib/parse-product-response';
 
 interface ProductSidebarProps {
@@ -45,35 +46,42 @@ export function ProductSidebar({
         </div>
 
         <div className="flex-1 space-y-3 overflow-y-auto p-4">
-          {products.map((product) => (
-            <article key={`${product.supplierId}-${product.productId}`} className="rounded-xl border border-slate-200">
-              {product.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={product.imageUrl}
-                  alt={product.productName}
-                  className="h-44 w-full rounded-t-xl object-cover"
-                  loading="lazy"
-                  onError={(event) => {
-                    event.currentTarget.src = '/sourcy-si-icon.svg';
-                    event.currentTarget.className =
-                      'h-44 w-full rounded-t-xl bg-slate-100 object-contain p-6';
-                  }}
-                />
-              ) : null}
-              <div className="space-y-1 p-3">
-                {supplierNameById[product.supplierId] ? (
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    {supplierNameById[product.supplierId]}
-                  </p>
+          {products.map((product) => {
+            const proxiedImageUrl = toImageProxyUrl(product.imageUrl);
+
+            return (
+              <article
+                key={`${product.supplierId}-${product.productId}`}
+                className="rounded-xl border border-slate-200"
+              >
+                {proxiedImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={proxiedImageUrl}
+                    alt={product.productName}
+                    className="h-44 w-full rounded-t-xl object-cover"
+                    loading="lazy"
+                    onError={(event) => {
+                      event.currentTarget.src = '/sourcy-si-icon.svg';
+                      event.currentTarget.className =
+                        'h-44 w-full rounded-t-xl bg-slate-100 object-contain p-6';
+                    }}
+                  />
                 ) : null}
-                <p className="text-sm font-semibold text-slate-800">{product.productName}</p>
-                <p className="text-xs text-slate-500">
-                  {product.currency ?? '-'} {product.saleCount ? `• ${product.saleCount}` : ''}
-                </p>
-              </div>
-            </article>
-          ))}
+                <div className="space-y-1 p-3">
+                  {supplierNameById[product.supplierId] ? (
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      {supplierNameById[product.supplierId]}
+                    </p>
+                  ) : null}
+                  <p className="text-sm font-semibold text-slate-800">{product.productName}</p>
+                  <p className="text-xs text-slate-500">
+                    {product.currency ?? '-'} {product.saleCount ? `• ${product.saleCount}` : ''}
+                  </p>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </aside>
     </>

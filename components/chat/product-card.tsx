@@ -1,5 +1,7 @@
 'use client';
 
+import { toImageProxyUrl } from '@/lib/image-proxy';
+
 interface ProductCardProps {
   supplierName?: string;
   productName: string;
@@ -15,13 +17,15 @@ export function ProductCard({
   currency,
   saleCount,
 }: ProductCardProps) {
+  const proxiedImageUrl = toImageProxyUrl(imageUrl);
+
   return (
     <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      {imageUrl ? (
+      {proxiedImageUrl ? (
         <div className="block h-40 w-full bg-slate-100">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={imageUrl}
+            src={proxiedImageUrl}
             alt={productName}
             className="h-full w-full object-cover"
             loading="lazy"
