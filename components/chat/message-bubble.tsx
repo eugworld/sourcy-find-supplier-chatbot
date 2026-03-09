@@ -26,8 +26,12 @@ interface MessageBubbleProps {
 
 function sanitizeVisibleAssistantText(text: string): string {
   return text
+    .replace(/supplier[_\s-]*id/gi, 'supplier')
+    .replace(/product[_\s-]*id/gi, 'product')
     .replace(/Supplier ID:\s*[A-Za-z0-9-]+/gi, 'Supplier')
-    .replace(/Product ID:\s*[A-Za-z0-9-]+/gi, 'Product');
+    .replace(/Product ID:\s*[A-Za-z0-9-]+/gi, 'Product')
+    .replace(/(supplier\s*[:#-]?\s*)\d{2,}/gi, '$1[hidden]')
+    .replace(/(product\s*[:#-]?\s*)\d{2,}/gi, '$1[hidden]');
 }
 
 export function MessageBubble({
@@ -206,11 +210,13 @@ export function MessageBubble({
           </div>
         ) : null}
 
-        {textParts.map((part, index) => (
-          <div key={`${message.id}-text-${index}`}>
-            <MarkdownContent content={sanitizeVisibleAssistantText(part.text)} />
-          </div>
-        ))}
+        {!hasStructuredCards
+          ? textParts.map((part, index) => (
+              <div key={`${message.id}-text-${index}`}>
+                <MarkdownContent content={sanitizeVisibleAssistantText(part.text)} />
+              </div>
+            ))
+          : null}
 
         {hasStructuredCards ? (
           <SourcingCta
