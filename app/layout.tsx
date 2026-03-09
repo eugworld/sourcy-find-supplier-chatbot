@@ -12,6 +12,11 @@ export const metadata: Metadata = {
   title: 'Sourcy Supplier Intelligence',
   description:
     'Conversational supplier intelligence assistant for sourcing teams.',
+  icons: {
+    icon: '/sourcy-si-icon.svg',
+    shortcut: '/sourcy-si-icon.svg',
+    apple: '/sourcy-si-icon.svg',
+  },
 };
 
 export default function RootLayout({

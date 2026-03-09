@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 
 import { MarkdownContent } from '@/components/chat/markdown-content';
 import { LoadingDots } from '@/components/ui/loading-dots';
@@ -13,12 +14,14 @@ interface ThinkingBlockProps {
     status: string;
     isRunning: boolean;
   }>;
+  filterContent?: ReactNode;
 }
 
 export function ThinkingBlock({
   content,
   isStreaming,
   toolActivities = [],
+  filterContent,
 }: ThinkingBlockProps) {
   const [isExpanded, setIsExpanded] = useState(isStreaming);
 
@@ -97,6 +100,12 @@ export function ThinkingBlock({
                   </div>
                 ))}
               </div>
+            </div>
+          ) : null}
+
+          {filterContent ? (
+            <div className="rounded-lg border border-amber-200 bg-white/70 p-2">
+              {filterContent}
             </div>
           ) : null}
 

@@ -134,6 +134,21 @@ export function MessageBubble({
         }.`
       : '';
 
+  const filterControl =
+    supplierCards.length > 0 || productCards.length > 0 ? (
+      <div>
+        <label className="block text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+          Filter by supplier name
+        </label>
+        <input
+          value={supplierFilter}
+          onChange={(event) => setSupplierFilter(event.target.value)}
+          placeholder="e.g. Wenzhou"
+          className="mt-1 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm text-slate-700 outline-none focus:border-teal-400"
+        />
+      </div>
+    ) : null;
+
   return (
     <div className="flex justify-start">
       <div className="max-w-[92%] space-y-3 rounded-2xl rounded-tl-md border border-slate-200 bg-slate-50 px-4 py-3 sm:max-w-[84%]">
@@ -142,21 +157,8 @@ export function MessageBubble({
             content={combinedReasoning || 'Waiting for Gemini thoughts...'}
             isStreaming={isReasoningStreaming}
             toolActivities={toolActivities}
+            filterContent={filterControl}
           />
-        ) : null}
-
-        {(supplierCards.length > 0 || productCards.length > 0) ? (
-          <div className="rounded-lg border border-slate-200 bg-white p-2">
-            <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Filter by supplier name
-            </label>
-            <input
-              value={supplierFilter}
-              onChange={(event) => setSupplierFilter(event.target.value)}
-              placeholder="e.g. Wenzhou"
-              className="mt-1 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm text-slate-700 outline-none focus:border-teal-400"
-            />
-          </div>
         ) : null}
 
         {filteredSupplierCards.length > 0 ? (

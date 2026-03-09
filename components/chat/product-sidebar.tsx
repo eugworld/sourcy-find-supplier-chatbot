@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import type { ProductCardData } from '@/lib/parse-product-response';
 
 interface ProductSidebarProps {
@@ -29,7 +31,10 @@ export function ProductSidebar({
       />
       <aside className="fixed right-0 top-0 z-50 flex h-screen w-full max-w-md flex-col border-l border-slate-200 bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <h3 className="text-sm font-semibold text-slate-900">Product details</h3>
+          <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+            <Image src="/sourcy-si-icon.svg" alt="Sourcy icon" width={18} height={18} />
+            Product details
+          </h3>
           <button
             type="button"
             onClick={onClose}

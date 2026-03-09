@@ -7,18 +7,16 @@ interface EmptyStateProps {
 }
 
 const categories = [
-  'Fashion Accessories',
-  'Electronics',
-  'Packaging',
-  'Beauty',
-  'Home & Garden',
+  'Fashion & Apparel',
+  'Home & Living',
+  'Beauty Packaging',
+  'Other Packaging Stuffs',
 ];
 
 const suggestions = [
-  'Find umbrella suppliers with MOQ and pricing',
-  'Custom perfume bottle cap suppliers',
-  'List packaging materials suppliers',
-  'Which suppliers can source trash cans?',
+  'I want to find suppliers for findings best mugs that can be customized by shape color texture',
+  'Where I can find the best supplier for beauty packaging for lipstick tube?',
+  'Customized shoes that has an advanced material for sweat absorbant',
 ];
 
 export function EmptyState({ onSuggestionClick }: EmptyStateProps) {

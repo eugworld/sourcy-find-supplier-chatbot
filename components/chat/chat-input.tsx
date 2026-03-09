@@ -45,9 +45,9 @@ export function ChatInput({
   };
 
   return (
-    <div className="border-t border-slate-200 bg-white/90 px-4 py-3 backdrop-blur-sm sm:px-6">
-      <div className="mx-auto w-full max-w-3xl">
-        <div className="flex items-end gap-2 rounded-2xl border border-slate-300 bg-white px-3 py-1.5 shadow-sm focus-within:border-teal-400 focus-within:ring-2 focus-within:ring-teal-100">
+    <div className="border-t border-slate-200 bg-white/90 px-4 py-2 backdrop-blur-sm sm:px-6">
+      <div className="mx-auto w-full max-w-2xl">
+        <div className="flex items-end gap-2 rounded-xl border border-slate-300 bg-white px-2.5 py-1 shadow-sm focus-within:border-teal-400 focus-within:ring-2 focus-within:ring-teal-100">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -60,7 +60,7 @@ export function ChatInput({
                 handleSend();
               }
             }}
-            className="max-h-28 min-h-[36px] flex-1 resize-none bg-transparent py-1.5 text-sm text-slate-800 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed"
+            className="max-h-24 min-h-[34px] flex-1 resize-none bg-transparent py-1 text-sm text-slate-800 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed"
             placeholder="Ask about suppliers, products, capabilities..."
           />
 
@@ -68,14 +68,14 @@ export function ChatInput({
             type="button"
             disabled={disabled || !value.trim()}
             onClick={handleSend}
-            className="inline-flex h-9 items-center justify-center rounded-xl bg-teal-600 px-3 text-sm font-semibold text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="inline-flex h-8 items-center justify-center rounded-lg bg-teal-600 px-3 text-sm font-semibold text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             Send
           </button>
         </div>
 
         <div className="mt-2 flex items-center gap-2 text-xs">
-          <label className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-slate-600">
+          <label className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-2 py-1 text-slate-600">
             <span>Mode</span>
             <select
               value={queryMode}
@@ -87,7 +87,7 @@ export function ChatInput({
             </select>
           </label>
 
-          <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-slate-600">
+          <div className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-2 py-1 text-slate-600">
             <span>Thinking</span>
             <span className="font-medium text-slate-700">
               {queryMode === QUERY_TYPES.DEEP ? 'High' : 'Medium'}
