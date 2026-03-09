@@ -29,8 +29,11 @@ type AuthContextValue = AuthState & {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [authState, setAuth] = useState<AuthState>(() => getAuthState());
-  const [isReady, setIsReady] = useState(() => typeof window !== 'undefined');
+  const [authState, setAuth] = useState<AuthState>({
+    isAuthenticated: false,
+    email: null,
+  });
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const syncAuthState = () => {

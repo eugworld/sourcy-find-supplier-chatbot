@@ -11,7 +11,7 @@ import {
 } from '@/lib/chat-limits';
 
 export function useChatLimit(isAuthenticated: boolean) {
-  const [usage, setUsage] = useState<ChatUsage>(() => getChatUsage());
+  const [usage, setUsage] = useState<ChatUsage>({ count: 0, date: '' });
 
   const refreshUsage = useCallback(() => {
     setUsage(getChatUsage());
