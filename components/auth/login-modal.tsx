@@ -79,11 +79,11 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       <div className="space-y-4">
         <div className="space-y-1">
           <h2 className="text-xl font-semibold text-slate-900">
-            🔒 {mode === 'signin' ? 'Sign in to continue' : 'Create your account'}
+            🔒 {mode === 'signin' ? 'Login to continue' : 'Register account'}
           </h2>
           <p className="text-sm text-slate-600">
             {mode === 'signin'
-              ? 'You have used your free searches. Sign in for more daily access.'
+              ? 'You have used your free searches. Login for more daily access.'
               : 'Create an account for daily access and sourcing support.'}
           </p>
         </div>
@@ -98,7 +98,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 : 'text-slate-600'
             }`}
           >
-            Sign In
+            Login
           </button>
           <button
             type="button"
@@ -163,21 +163,9 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   value={businessName}
                   onChange={(event) => setBusinessName(event.target.value)}
                   className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-teal-500 placeholder:text-slate-400 focus:ring-2"
-                  placeholder="Your company"
-                />
-              </label>
-
-              <label className="block text-sm font-medium text-slate-700">
-                Business website (optional)
-                <input
-                  type="url"
-                  disabled={isSubmitting}
-                  value={businessWebsite}
-                  onChange={(event) => setBusinessWebsite(event.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-teal-500 placeholder:text-slate-400 focus:ring-2"
-                  placeholder="https://yourcompany.com"
-                />
-              </label>
+                placeholder="Your company"
+              />
+            </label>
 
               <label className="block text-sm font-medium text-slate-700">
                 Phone number
@@ -208,6 +196,20 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             />
           </label>
 
+          {mode === 'signup' ? (
+            <label className="block text-sm font-medium text-slate-700">
+              Business website (optional)
+              <input
+                type="url"
+                disabled={isSubmitting}
+                value={businessWebsite}
+                onChange={(event) => setBusinessWebsite(event.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-teal-500 placeholder:text-slate-400 focus:ring-2"
+                placeholder="https://yourcompany.com"
+              />
+            </label>
+          ) : null}
+
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
           {info ? <p className="text-sm text-teal-700">{info}</p> : null}
 
@@ -221,7 +223,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               {isSubmitting
                 ? 'Please wait...'
                 : mode === 'signin'
-                ? 'Sign In'
+                ? 'Login'
                 : 'Register'}
             </button>
             <button
@@ -230,7 +232,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
               className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
             >
-              {mode === 'signin' ? 'Need account?' : 'Have account?'}
+              {mode === 'signin' ? 'Register' : 'Login'}
             </button>
           </div>
         </form>
