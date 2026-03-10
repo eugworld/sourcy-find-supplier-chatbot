@@ -120,14 +120,48 @@ export const searchSuppliersTool = tool({
       ),
   }),
   execute: async ({ question, query_type }) => {
-    try {
+    const questionWithRequiredIds = [
+      question,
+      '',
+      'Output requirements (mandatory):',
+      '- Include supplier_id for every supplier candidate.',
+      '- If exact matches are limited, include partial matches with supplier_id.',
+      '- Prefer structured JSON with a top-level "suppliers" array.',
+      '- For each supplier include: supplier_id, supplier_name, capability_summary, matched_capabilities, missing_capabilities, confidence.',
+      '- Do not omit supplier_id.',
+    ].join('\n');
+
+    const hasSupplierIds = (value: unknown): boolean => {
+      const raw =
+        typeof value === 'string'
+          ? value
+          : (() => {
+              try {
+                return JSON.stringify(value);
+              } catch {
+                return '';
+              }
+            })();
+
+      if (!raw) {
+        return false;
+      }
+
+      return (
+        /supplier[_\s-]*id["'\s:=-]*\d+/i.test(raw) ||
+        /"supplier_id"\s*:\s*\d+/i.test(raw) ||
+        /Supplier ID:\s*[A-Za-z0-9-]+/i.test(raw)
+      );
+    };
+
+    const callSupplierApi = async (prompt: string): Promise<unknown> => {
       const response = await fetchWithTimeout(
         SOURCY_SUPPLIER_API_URL,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            question,
+            question: prompt,
             query_type,
             node_name: SUPPLIER_NODE_NAME,
           }),
@@ -136,7 +170,7 @@ export const searchSuppliersTool = tool({
       );
 
       if (!response.ok) {
-        return getTemporarySupplierFallback();
+        return null;
       }
 
       const data = (await response.json()) as {
@@ -144,7 +178,31 @@ export const searchSuppliersTool = tool({
         [key: string]: unknown;
       };
 
-      const answer = Array.isArray(data.answer) ? data.answer[0] : data.answer;
+      return Array.isArray(data.answer) ? data.answer[0] : data.answer;
+    };
+
+    try {
+      const firstAnswer = await callSupplierApi(questionWithRequiredIds);
+      if (firstAnswer == null) {
+        return getTemporarySupplierFallback();
+      }
+
+      let answer: unknown = firstAnswer;
+
+      if (!hasSupplierIds(answer)) {
+        const retryPrompt = [
+          questionWithRequiredIds,
+          '',
+          'Retry rule:',
+          'Return supplier candidates only if supplier_id is present.',
+          'If supplier_id is unknown for a candidate, exclude that candidate.',
+        ].join('\n');
+
+        const secondAnswer = await callSupplierApi(retryPrompt);
+        if (secondAnswer != null && hasSupplierIds(secondAnswer)) {
+          answer = secondAnswer;
+        }
+      }
 
       if (typeof answer === 'string') {
         return answer;
