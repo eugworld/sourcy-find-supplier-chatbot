@@ -60,8 +60,8 @@ export function ChatInput({
                 handleSend();
               }
             }}
-            className="max-h-24 min-h-[34px] flex-1 resize-none bg-transparent py-1 text-sm text-slate-800 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed"
-            placeholder="Ask about suppliers, products, capabilities..."
+            className="max-h-24 min-h-[34px] flex-1 resize-none bg-transparent py-1 text-sm text-slate-800 outline-none placeholder:text-xs placeholder:text-slate-400 disabled:cursor-not-allowed sm:placeholder:text-sm"
+            placeholder="Ask suppliers..."
           />
 
           <button
@@ -75,8 +75,8 @@ export function ChatInput({
         </div>
 
         <div className="mt-2 flex items-center gap-2 text-xs">
-          <label className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-2 py-1 text-slate-600">
-            <span>Mode</span>
+          <label className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1 text-slate-600">
+            <span className="hidden sm:inline">Mode</span>
             <select
               value={queryMode}
               onChange={(event) => onQueryModeChange(event.target.value as QueryType)}

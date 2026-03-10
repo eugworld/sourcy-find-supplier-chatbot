@@ -193,6 +193,21 @@ function toStringValue(value: unknown): string | null {
   return null;
 }
 
+function toNumberValue(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
 function normalizeImageUrl(url: string | null): string | null {
   if (!url) {
     return null;
@@ -301,11 +316,16 @@ export const lookupSupplierProductsTool = tool({
     const productsUrl =
       `${POSTGREST_BASE_URL}/products` +
       `?supplier_id=${encodeURIComponent(inClause)}` +
-      `&select=product_id,supplier_id,title,title_translated,link,image_urls,currency,sale_count,stock_count` +
+      `&select=product_id,supplier_id,title,title_translated,link,image_urls,currency,stock_count,price_info,sale_count` +
       `&order=sale_count.desc.nullslast` +
       `&limit=${product_limit}`;
+    const variantsUrl =
+      `${POSTGREST_BASE_URL}/product_variants` +
+      `?product_id=${encodeURIComponent(inClause)}` +
+      `&select=product_id,price,price_currency,moq` +
+      '&limit=2000';
 
-    const [supplierResponse, productResponse] = await Promise.all([
+    const [supplierResponse, productResponse, variantResponse] = await Promise.all([
       fetchWithTimeout(
         suppliersUrl,
         {
@@ -328,6 +348,17 @@ export const lookupSupplierProductsTool = tool({
         },
         20_000,
       ),
+      fetchWithTimeout(
+        variantsUrl,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            ...getPostgrestAuthHeaders(postgrestJwt),
+          },
+        },
+        20_000,
+      ),
     ]);
 
     if (!supplierResponse.ok || !productResponse.ok) {
@@ -340,8 +371,66 @@ export const lookupSupplierProductsTool = tool({
 
     const suppliersRaw = (await supplierResponse.json()) as unknown;
     const productsRaw = (await productResponse.json()) as unknown;
+    const variantsRaw = variantResponse.ok
+      ? ((await variantResponse.json()) as unknown)
+      : [];
     const suppliers = Array.isArray(suppliersRaw) ? suppliersRaw : [];
     const products = Array.isArray(productsRaw) ? productsRaw : [];
+    const variants = Array.isArray(variantsRaw) ? variantsRaw : [];
+
+    const variantStatsByProductId = new Map<
+      string,
+      {
+        minPrice: number | null;
+        maxPrice: number | null;
+        minMoq: number | null;
+        maxMoq: number | null;
+        currency: string | null;
+      }
+    >();
+
+    for (const row of variants) {
+      if (!row || typeof row !== 'object') {
+        continue;
+      }
+
+      const variant = row as Record<string, unknown>;
+      const productId = toStringValue(variant.product_id);
+      if (!productId) {
+        continue;
+      }
+
+      const price = toNumberValue(variant.price);
+      const moq = toNumberValue(variant.moq);
+      const currency = toStringValue(variant.price_currency);
+      const existing = variantStatsByProductId.get(productId) ?? {
+        minPrice: null,
+        maxPrice: null,
+        minMoq: null,
+        maxMoq: null,
+        currency: null,
+      };
+
+      if (price !== null) {
+        existing.minPrice =
+          existing.minPrice === null ? price : Math.min(existing.minPrice, price);
+        existing.maxPrice =
+          existing.maxPrice === null ? price : Math.max(existing.maxPrice, price);
+      }
+
+      if (moq !== null) {
+        existing.minMoq =
+          existing.minMoq === null ? moq : Math.min(existing.minMoq, moq);
+        existing.maxMoq =
+          existing.maxMoq === null ? moq : Math.max(existing.maxMoq, moq);
+      }
+
+      if (!existing.currency && currency) {
+        existing.currency = currency;
+      }
+
+      variantStatsByProductId.set(productId, existing);
+    }
 
     const normalizedSuppliers = suppliers
       .map((row) => {
@@ -386,6 +475,9 @@ export const lookupSupplierProductsTool = tool({
           return null;
         }
 
+        const variantStats = variantStatsByProductId.get(productId);
+        const currency = variantStats?.currency ?? toStringValue(product.currency);
+
         return {
           product_id: productId,
           supplier_id: supplierId,
@@ -396,8 +488,11 @@ export const lookupSupplierProductsTool = tool({
           product_url: toStringValue(product.link),
           product_image_url: pickFirstImageUrl(product.image_urls),
           product_api_url: buildProductApiUrl(productId),
-          currency: toStringValue(product.currency),
-          sale_count: toStringValue(product.sale_count),
+          currency,
+          price_min: variantStats?.minPrice ?? null,
+          price_max: variantStats?.maxPrice ?? null,
+          moq_min: variantStats?.minMoq ?? null,
+          moq_max: variantStats?.maxMoq ?? null,
           stock_count: toStringValue(product.stock_count),
         };
       })
@@ -408,6 +503,7 @@ export const lookupSupplierProductsTool = tool({
       products: normalizedProducts,
       supplier_query_url: suppliersUrl,
       product_query_url: productsUrl,
+      variant_query_url: variantsUrl,
       note:
         normalizedProducts.length === 0
           ? 'No products found for the supplied supplier IDs.'

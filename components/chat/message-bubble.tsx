@@ -187,7 +187,8 @@ export function MessageBubble({
                   productName={product.productName}
                   imageUrl={product.imageUrl}
                   currency={product.currency}
-                  saleCount={product.saleCount}
+                  priceRange={product.priceRange}
+                  moqRange={product.moqRange}
                 />
               ))}
             </div>

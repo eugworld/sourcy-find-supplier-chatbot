@@ -123,8 +123,8 @@ export function ChatContainer() {
         disabled={isLoading}
         isLoading={isLoading}
       />
-      <div className="mx-auto mb-2 flex w-full max-w-4xl flex-col gap-1 px-3 text-[11px] text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-4">
-        <p>AI can make mistakes. Please verify supplier and product details.</p>
+      <div className="mx-auto mb-2 flex w-full max-w-4xl items-center justify-between gap-2 px-3 text-[10px] text-slate-500 sm:px-4 sm:text-[11px]">
+        <p>AI may make mistakes. Verify key supplier details.</p>
         <a
           href="https://sourcy.ai"
           target="_blank"

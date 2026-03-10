@@ -7,7 +7,8 @@ interface ProductCardProps {
   productName: string;
   imageUrl?: string | null;
   currency?: string | null;
-  saleCount?: string | null;
+  priceRange?: string | null;
+  moqRange?: string | null;
 }
 
 export function ProductCard({
@@ -15,7 +16,8 @@ export function ProductCard({
   productName,
   imageUrl,
   currency,
-  saleCount,
+  priceRange,
+  moqRange,
 }: ProductCardProps) {
   const proxiedImageUrl = toImageProxyUrl(imageUrl);
 
@@ -46,11 +48,17 @@ export function ProductCard({
           <p className="line-clamp-1 text-xs text-slate-500">{supplierName}</p>
         ) : null}
         <p className="line-clamp-2 text-sm font-semibold text-slate-800">{productName}</p>
-        <div className="flex items-center justify-between text-xs text-slate-500">
-          <span>Product</span>
-          <span>
-            {currency ?? '-'} {saleCount ?? ''}
-          </span>
+        <div className="space-y-1 text-xs text-slate-500">
+          <p>
+            Price:{' '}
+            <span className="font-medium text-slate-700">
+              {priceRange ? `${currency ?? ''} ${priceRange}`.trim() : 'N/A'}
+            </span>
+          </p>
+          <p>
+            MOQ:{' '}
+            <span className="font-medium text-slate-700">{moqRange ?? 'N/A'}</span>
+          </p>
         </div>
       </div>
     </article>

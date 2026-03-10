@@ -76,7 +76,18 @@ export function ProductSidebar({
                   ) : null}
                   <p className="text-sm font-semibold text-slate-800">{product.productName}</p>
                   <p className="text-xs text-slate-500">
-                    {product.currency ?? '-'} {product.saleCount ? `• ${product.saleCount}` : ''}
+                    Price:{' '}
+                    <span className="font-medium text-slate-700">
+                      {product.priceRange
+                        ? `${product.currency ?? ''} ${product.priceRange}`.trim()
+                        : 'N/A'}
+                    </span>
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    MOQ:{' '}
+                    <span className="font-medium text-slate-700">
+                      {product.moqRange ?? 'N/A'}
+                    </span>
                   </p>
                 </div>
               </article>

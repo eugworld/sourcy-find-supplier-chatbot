@@ -1,7 +1,7 @@
 export const APP_NAME = 'Sourcy Supplier Intelligence';
 
 export const SOURCY_SUPPLIER_API_URL =
-  'https://labs.sourcy.ai/api/supplier-intelligence/ask';
+  'https://supplier-knowledge-rr24bxim5a-as.a.run.app/ask';
 export const SUPPLIER_NODE_NAME = 'supplier_intelligence';
 export const POSTGREST_BASE_URL = 'https://api.sourcy.ai/db';
 

@@ -6,13 +6,42 @@ export interface ProductCardData {
   productLink: string | null;
   imageUrl: string | null;
   currency: string | null;
-  saleCount: string | null;
+  priceRange: string | null;
+  moqRange: string | null;
 }
 
 function toStr(value: unknown): string | null {
   if (typeof value === 'string' && value.trim()) return value.trim();
   if (typeof value === 'number' && Number.isFinite(value)) return String(value);
   return null;
+}
+
+function toNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
+function formatRange(minValue: number | null, maxValue: number | null): string | null {
+  if (minValue === null && maxValue === null) {
+    return null;
+  }
+
+  const min = minValue ?? maxValue;
+  const max = maxValue ?? minValue;
+
+  if (min === null || max === null) {
+    return null;
+  }
+
+  if (min === max) {
+    return `${min}`;
+  }
+
+  return `${min}-${max}`;
 }
 
 export function parseProductsFromToolOutput(output: unknown): ProductCardData[] {
@@ -74,7 +103,11 @@ export function parseProductsFromToolOutput(output: unknown): ProductCardData[] 
           productLink: toStr(product.product_url),
           imageUrl: toStr(product.product_image_url),
           currency: toStr(product.currency),
-          saleCount: toStr(product.sale_count),
+          priceRange: formatRange(
+            toNumber(product.price_min),
+            toNumber(product.price_max),
+          ),
+          moqRange: formatRange(toNumber(product.moq_min), toNumber(product.moq_max)),
         };
       })
       .filter((row): row is NonNullable<typeof row> => row !== null);
