@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
 
 import { toImageProxyUrl } from '@/lib/image-proxy';
 import type { ProductCardData } from '@/lib/parse-product-response';
@@ -18,9 +19,24 @@ export function ProductSidebar({
   products,
   supplierNameById,
 }: ProductSidebarProps) {
+  const [supplierFilter, setSupplierFilter] = useState('');
+  const [previewImage, setPreviewImage] = useState<{
+    src: string;
+    alt: string;
+  } | null>(null);
+
   if (!isOpen) {
     return null;
   }
+
+  const normalizedFilter = supplierFilter.trim().toLowerCase();
+  const filteredProducts = !normalizedFilter
+    ? products
+    : products.filter((product) =>
+        (supplierNameById[product.supplierId] ?? product.supplierName ?? '')
+          .toLowerCase()
+          .includes(normalizedFilter),
+      );
 
   return (
     <>
@@ -45,8 +61,20 @@ export function ProductSidebar({
           </button>
         </div>
 
+        <div className="border-b border-slate-200 p-3">
+          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Filter by supplier name
+          </label>
+          <input
+            value={supplierFilter}
+            onChange={(event) => setSupplierFilter(event.target.value)}
+            placeholder="e.g. Wenzhou"
+            className="mt-1 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm text-slate-700 outline-none focus:border-teal-400"
+          />
+        </div>
+
         <div className="flex-1 space-y-3 overflow-y-auto p-4">
-          {products.map((product) => {
+          {filteredProducts.map((product) => {
             const proxiedImageUrl = toImageProxyUrl(product.imageUrl);
 
             return (
@@ -61,6 +89,12 @@ export function ProductSidebar({
                     alt={product.productName}
                     className="h-44 w-full rounded-t-xl object-cover"
                     loading="lazy"
+                    onClick={() =>
+                      setPreviewImage({
+                        src: proxiedImageUrl,
+                        alt: product.productName,
+                      })
+                    }
                     onError={(event) => {
                       event.currentTarget.src = '/sourcy-si-icon.svg';
                       event.currentTarget.className =
@@ -95,6 +129,25 @@ export function ProductSidebar({
           })}
         </div>
       </aside>
+
+      {previewImage ? (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/70 p-4">
+          <button
+            type="button"
+            className="absolute inset-0"
+            aria-label="Close image preview"
+            onClick={() => setPreviewImage(null)}
+          />
+          <div className="relative z-10 max-h-[90vh] max-w-4xl overflow-hidden rounded-xl bg-white p-2 shadow-2xl">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewImage.src}
+              alt={previewImage.alt}
+              className="max-h-[84vh] w-full rounded-lg object-contain"
+            />
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

@@ -39,7 +39,6 @@ export function MessageBubble({
   isStreamingAssistant = false,
 }: MessageBubbleProps) {
   const [isProductSidebarOpen, setIsProductSidebarOpen] = useState(false);
-  const [supplierFilter, setSupplierFilter] = useState('');
   const textParts = message.parts.filter((part) => part.type === 'text');
   const reasoningParts = message.parts.filter((part) => part.type === 'reasoning');
   const toolParts = message.parts.filter((part) => isToolOrDynamicToolUIPart(part));
@@ -80,31 +79,16 @@ export function MessageBubble({
         .map((supplier) => [supplier.supplierId, supplier.supplierName ?? '']),
     ),
   };
-  const filterTerm = supplierFilter.trim().toLowerCase();
-  const filteredSupplierCards =
-    filterTerm.length === 0
-      ? supplierCards
-      : supplierCards.filter((supplier) =>
-          (supplier.supplierName ?? '').toLowerCase().includes(filterTerm),
-        );
-  const filteredProductCards =
-    filterTerm.length === 0
-      ? productCards
-      : productCards.filter((product) =>
-          (product.supplierName ?? supplierNameById[product.supplierId] ?? '')
-            .toLowerCase()
-            .includes(filterTerm),
-        );
-  const topProductCards = filteredProductCards.slice(0, 3);
-  const extraProductCount = Math.max(0, filteredProductCards.length - 3);
+  const topProductCards = productCards.slice(0, 3);
+  const extraProductCount = Math.max(0, productCards.length - 3);
   const combinedReasoning = reasoningParts.map((part) => part.text).join('\n\n');
   const toolActivities = toolParts.map((part) => {
     const toolName = getToolOrDynamicToolName(part);
     const label =
       toolName === 'search_suppliers'
-        ? 'Supplier Knowledge Search'
+        ? 'Sourcy Knowledge: Finding the Right Supplier'
         : toolName === 'lookup_supplier_products'
-        ? 'PostgREST Supplier Products'
+        ? 'PostgREST: Getting Product Details'
         : toolName.replace(/_/g, ' ');
     const status =
       part.state === 'output-available'
@@ -123,31 +107,16 @@ export function MessageBubble({
   const isReasoningStreaming =
     isStreamingAssistant || reasoningParts.some((part) => part.state === 'streaming');
   const hasStructuredCards =
-    filteredSupplierCards.length > 0 || filteredProductCards.length > 0;
+    supplierCards.length > 0 || productCards.length > 0;
   const hasTextResponse = textParts.some((part) => part.text.trim().length > 0);
   const fallbackSummary =
-    filteredSupplierCards.length > 0 || filteredProductCards.length > 0
-      ? `I found ${filteredSupplierCards.length} supplier${
-          filteredSupplierCards.length === 1 ? '' : 's'
-        } and ${filteredProductCards.length} product${
-          filteredProductCards.length === 1 ? '' : 's'
+    supplierCards.length > 0 || productCards.length > 0
+      ? `I found ${supplierCards.length} supplier${
+          supplierCards.length === 1 ? '' : 's'
+        } and ${productCards.length} product${
+          productCards.length === 1 ? '' : 's'
         }.`
       : '';
-
-  const filterControl =
-    supplierCards.length > 0 || productCards.length > 0 ? (
-      <div>
-        <label className="block text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-          Filter by supplier name
-        </label>
-        <input
-          value={supplierFilter}
-          onChange={(event) => setSupplierFilter(event.target.value)}
-          placeholder="e.g. Wenzhou"
-          className="mt-1 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm text-slate-700 outline-none focus:border-teal-400"
-        />
-      </div>
-    ) : null;
 
   return (
     <div className="flex justify-start">
@@ -157,7 +126,6 @@ export function MessageBubble({
             content={combinedReasoning || 'Waiting for Gemini thoughts...'}
             isStreaming={isReasoningStreaming}
             toolActivities={toolActivities}
-            filterContent={filterControl}
           />
         ) : null}
 
@@ -167,9 +135,9 @@ export function MessageBubble({
           </div>
         ))}
 
-        {filteredSupplierCards.length > 0 ? (
+        {supplierCards.length > 0 ? (
           <div className="space-y-3 pt-1">
-            {filteredSupplierCards.map((supplier) => (
+            {supplierCards.map((supplier) => (
               <SupplierCard key={`supplier-${supplier.supplierId}`} {...supplier} />
             ))}
           </div>
@@ -204,11 +172,11 @@ export function MessageBubble({
           </div>
         ) : null}
 
-        {filteredProductCards.length > 0 ? (
+        {productCards.length > 0 ? (
           <ProductSidebar
             isOpen={isProductSidebarOpen}
             onClose={() => setIsProductSidebarOpen(false)}
-            products={filteredProductCards}
+            products={productCards}
             supplierNameById={supplierNameById}
           />
         ) : null}
@@ -220,9 +188,9 @@ export function MessageBubble({
         ) : null}
 
         {hasStructuredCards ? (
-          <SourcingCta
-            productNames={Array.from(
-              new Set(filteredProductCards.map((product) => product.productName)),
+            <SourcingCta
+              productNames={Array.from(
+                new Set(productCards.map((product) => product.productName)),
             )}
           />
         ) : null}

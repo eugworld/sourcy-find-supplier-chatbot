@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import { toImageProxyUrl } from '@/lib/image-proxy';
 
 interface ProductCardProps {
@@ -20,6 +22,7 @@ export function ProductCard({
   moqRange,
 }: ProductCardProps) {
   const proxiedImageUrl = toImageProxyUrl(imageUrl);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   return (
     <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -31,6 +34,7 @@ export function ProductCard({
             alt={productName}
             className="h-full w-full object-cover"
             loading="lazy"
+            onClick={() => setIsPreviewOpen(true)}
             onError={(event) => {
               event.currentTarget.src = '/sourcy-si-icon.svg';
               event.currentTarget.className = 'h-full w-full bg-slate-100 object-contain p-6';
@@ -61,6 +65,25 @@ export function ProductCard({
           </p>
         </div>
       </div>
+
+      {isPreviewOpen && proxiedImageUrl ? (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/70 p-4">
+          <button
+            type="button"
+            className="absolute inset-0"
+            aria-label="Close image preview"
+            onClick={() => setIsPreviewOpen(false)}
+          />
+          <div className="relative z-10 max-h-[90vh] max-w-4xl overflow-hidden rounded-xl bg-white p-2 shadow-2xl">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={proxiedImageUrl}
+              alt={productName}
+              className="max-h-[84vh] w-full rounded-lg object-contain"
+            />
+          </div>
+        </div>
+      ) : null}
     </article>
   );
 }

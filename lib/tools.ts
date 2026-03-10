@@ -431,14 +431,14 @@ export const lookupSupplierProductsTool = tool({
         currency: null,
       };
 
-      if (price !== null) {
+      if (price !== null && price >= 1) {
         existing.minPrice =
           existing.minPrice === null ? price : Math.min(existing.minPrice, price);
         existing.maxPrice =
           existing.maxPrice === null ? price : Math.max(existing.maxPrice, price);
       }
 
-      if (moq !== null) {
+      if (moq !== null && moq >= 1) {
         existing.minMoq =
           existing.minMoq === null ? moq : Math.min(existing.minMoq, moq);
         existing.maxMoq =
@@ -516,7 +516,16 @@ export const lookupSupplierProductsTool = tool({
           stock_count: toStringValue(product.stock_count),
         };
       })
-      .filter((row): row is NonNullable<typeof row> => row !== null);
+      .filter((row): row is NonNullable<typeof row> => row !== null)
+      .filter(
+        (row) =>
+          row.price_min !== null &&
+          row.price_max !== null &&
+          row.moq_min !== null &&
+          row.moq_max !== null &&
+          row.price_min >= 1 &&
+          row.moq_min >= 1,
+      );
 
     return JSON.stringify({
       suppliers: normalizedSuppliers,
