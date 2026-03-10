@@ -574,16 +574,7 @@ export const lookupSupplierProductsTool = tool({
           stock_count: toStringValue(product.stock_count),
         };
       })
-      .filter((row): row is NonNullable<typeof row> => row !== null)
-      .filter(
-        (row) =>
-          row.price_min !== null &&
-          row.price_max !== null &&
-          row.moq_min !== null &&
-          row.moq_max !== null &&
-          row.price_min >= 1 &&
-          row.moq_min >= 1,
-      );
+      .filter((row): row is NonNullable<typeof row> => row !== null);
 
     return JSON.stringify({
       suppliers: normalizedSuppliers,
