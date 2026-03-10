@@ -21,6 +21,9 @@ npm install
 
 ```bash
 GOOGLE_GENERATIVE_AI_API_KEY=your-gemini-api-key
+POSTGREST_JWT=your-postgrest-jwt
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
 ```
 
 3. Start dev server:
@@ -37,7 +40,7 @@ npm run dev
 - Tool call progress UI while Sourcy API is executing
 - Fast vs Deep query mode (`RAG_COMPLETION` / `GRAPH_COMPLETION_CONTEXT_EXTENSION`)
 - Supplier card rendering from assistant output
-- Dummy local auth (in-memory users + localStorage auth state)
+- Real Supabase auth (email/password)
 - Chat limit gates (anonymous: 2, authenticated: 5/day)
 
 ## Project Structure

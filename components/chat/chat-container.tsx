@@ -81,7 +81,9 @@ export function ChatContainer() {
         limit={limit}
         isUnlimited={isUnlimitedAccess}
         onLoginClick={() => setIsLoginModalOpen(true)}
-        onLogout={signOut}
+        onLogout={() => {
+          void signOut();
+        }}
         onRefreshChat={handleRefreshChat}
       />
 

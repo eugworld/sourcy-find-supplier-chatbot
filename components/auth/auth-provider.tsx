@@ -9,21 +9,22 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import type { Session } from '@supabase/supabase-js';
 
-import {
-  getAuthState,
-  login,
-  logout,
-  register,
-  setAuthState,
-  type AuthState,
-} from '@/lib/auth';
+import type { AuthState } from '@/lib/auth';
+import { getSupabaseClient } from '@/lib/supabase';
+
+type AuthActionResult = {
+  success: boolean;
+  message?: string;
+  requiresEmailConfirmation?: boolean;
+};
 
 type AuthContextValue = AuthState & {
   isReady: boolean;
-  signIn: (email: string, password: string) => boolean;
-  signUp: (email: string, password: string) => boolean;
-  signOut: () => void;
+  signIn: (email: string, password: string) => Promise<AuthActionResult>;
+  signUp: (email: string, password: string) => Promise<AuthActionResult>;
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -33,47 +34,106 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: false,
     email: null,
   });
-  const [isReady, setIsReady] = useState(false);
+  const [isReady, setIsReady] = useState(() => getSupabaseClient() === null);
+
+  const applySession = useCallback((session: Session | null) => {
+    const email = session?.user?.email?.toLowerCase() ?? null;
+
+    setAuth({
+      isAuthenticated: Boolean(email),
+      email,
+    });
+  }, []);
 
   useEffect(() => {
-    const syncAuthState = () => {
-      setAuth(getAuthState());
-      setIsReady(true);
-    };
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      return;
+    }
 
-    const timeout = window.setTimeout(syncAuthState, 0);
-    window.addEventListener('storage', syncAuthState);
+    let active = true;
+
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!active) {
+        return;
+      }
+
+      applySession(data.session);
+      setIsReady(true);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      applySession(session);
+      setIsReady(true);
+    });
 
     return () => {
-      window.clearTimeout(timeout);
-      window.removeEventListener('storage', syncAuthState);
+      active = false;
+      subscription.unsubscribe();
     };
-  }, []);
+  }, [applySession]);
 
-  const signIn = useCallback((email: string, password: string) => {
-    const success = login(email, password);
-
-    if (success) {
-      setAuthState(email);
-      setAuth(getAuthState());
+  const signIn = useCallback(async (email: string, password: string) => {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      return {
+        success: false,
+        message: 'Auth is not configured. Missing Supabase environment variables.',
+      };
     }
 
-    return success;
-  }, []);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
 
-  const signUp = useCallback((email: string, password: string) => {
-    const success = register(email, password);
-
-    if (success) {
-      setAuthState(email);
-      setAuth(getAuthState());
+    if (error) {
+      return { success: false, message: error.message };
     }
 
-    return success;
-  }, []);
+    applySession(data.session);
+    return { success: true };
+  }, [applySession]);
 
-  const signOut = useCallback(() => {
-    logout();
+  const signUp = useCallback(async (email: string, password: string) => {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      return {
+        success: false,
+        message: 'Auth is not configured. Missing Supabase environment variables.',
+      };
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+
+    if (error) {
+      return { success: false, message: error.message };
+    }
+
+    applySession(data.session);
+
+    if (!data.session) {
+      return {
+        success: true,
+        requiresEmailConfirmation: true,
+        message: 'Account created. Check your email to confirm before signing in.',
+      };
+    }
+
+    return { success: true };
+  }, [applySession]);
+
+  const signOut = useCallback(async () => {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+
     setAuth({ isAuthenticated: false, email: null });
   }, []);
 

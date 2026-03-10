@@ -16,29 +16,47 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const clearAndClose = () => {
     setError(null);
+    setInfo(null);
     onClose();
   };
 
-  const handleSignIn = (event: FormEvent) => {
+  const handleSignIn = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
+    setInfo(null);
+    setIsSubmitting(true);
 
-    if (!signIn(email, password)) {
-      setError('Invalid email or password.');
+    const result = await signIn(email, password);
+    setIsSubmitting(false);
+
+    if (!result.success) {
+      setError(result.message ?? 'Invalid email or password.');
       return;
     }
 
     clearAndClose();
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     setError(null);
+    setInfo(null);
+    setIsSubmitting(true);
 
-    if (!signUp(email, password)) {
-      setError('Unable to register. That email may already exist.');
+    const result = await signUp(email, password);
+    setIsSubmitting(false);
+
+    if (!result.success) {
+      setError(result.message ?? 'Unable to register. That email may already exist.');
+      return;
+    }
+
+    if (result.requiresEmailConfirmation) {
+      setInfo(result.message ?? 'Please check your email to confirm your account.');
       return;
     }
 
@@ -62,6 +80,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               type="email"
               required
               autoComplete="email"
+              disabled={isSubmitting}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-teal-500 placeholder:text-slate-400 focus:ring-2"
@@ -75,6 +94,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               type="password"
               required
               autoComplete="current-password"
+              disabled={isSubmitting}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-teal-500 placeholder:text-slate-400 focus:ring-2"
@@ -83,16 +103,19 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </label>
 
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+          {info ? <p className="text-sm text-teal-700">{info}</p> : null}
 
           <div className="flex gap-2">
             <button
               type="submit"
+              disabled={isSubmitting}
               className="flex-1 rounded-lg bg-teal-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-teal-500"
             >
-              Sign In
+              {isSubmitting ? 'Please wait...' : 'Sign In'}
             </button>
             <button
               type="button"
+              disabled={isSubmitting}
               onClick={handleRegister}
               className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
             >
@@ -100,10 +123,6 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             </button>
           </div>
         </form>
-
-        <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-          Demo: <span className="font-semibold">demo@sourcy.ai / demo123</span>
-        </p>
       </div>
     </Modal>
   );
