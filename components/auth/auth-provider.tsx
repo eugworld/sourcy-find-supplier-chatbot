@@ -22,6 +22,7 @@ type AuthActionResult = {
 
 type AuthContextValue = AuthState & {
   isReady: boolean;
+  isUnlimitedProfile: boolean;
   signIn: (email: string, password: string) => Promise<AuthActionResult>;
   signUp: (email: string, password: string) => Promise<AuthActionResult>;
   signOut: () => Promise<void>;
@@ -35,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: null,
   });
   const [isReady, setIsReady] = useState(() => getSupabaseClient() === null);
+  const [isUnlimitedProfile, setIsUnlimitedProfile] = useState(false);
 
   const applySession = useCallback((session: Session | null) => {
     const email = session?.user?.email?.toLowerCase() ?? null;
@@ -43,6 +45,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: Boolean(email),
       email,
     });
+
+    if (!session) {
+      setIsUnlimitedProfile(false);
+      return;
+    }
+
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      setIsUnlimitedProfile(false);
+      return;
+    }
+
+    void (async () => {
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('is_unlimited')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        setIsUnlimitedProfile(Boolean(data?.is_unlimited));
+      } catch {
+        setIsUnlimitedProfile(false);
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -141,11 +168,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       ...authState,
       isReady,
+      isUnlimitedProfile,
       signIn,
       signUp,
       signOut,
     }),
-    [authState, isReady, signIn, signOut, signUp],
+    [authState, isReady, isUnlimitedProfile, signIn, signOut, signUp],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

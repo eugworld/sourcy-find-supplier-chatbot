@@ -15,10 +15,12 @@ import { canSendMessage } from '@/lib/chat-limits';
 import { QUERY_TYPES, type QueryType } from '@/lib/constants';
 
 export function ChatContainer() {
-  const { isAuthenticated, email, signOut } = useAuth();
+  const { isAuthenticated, email, signOut, isUnlimitedProfile } = useAuth();
   const { remaining, limit, consumeMessage, isUnlimited } = useChatLimit(isAuthenticated);
   const isUnlimitedAccess =
-    isUnlimited || email?.trim().toLowerCase() === 'demo@sourcy.ai';
+    isUnlimited ||
+    isUnlimitedProfile ||
+    email?.trim().toLowerCase() === 'demo@sourcy.ai';
 
   const [input, setInput] = useState('');
   const [queryMode, setQueryMode] = useState<QueryType>(QUERY_TYPES.FAST);
