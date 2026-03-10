@@ -20,11 +20,19 @@ type AuthActionResult = {
   requiresEmailConfirmation?: boolean;
 };
 
+type SignUpInput = {
+  email: string;
+  password: string;
+  businessName: string;
+  businessWebsite?: string;
+  phoneNumber: string;
+};
+
 type AuthContextValue = AuthState & {
   isReady: boolean;
   isUnlimitedProfile: boolean;
-  signIn: (email: string, password: string) => Promise<AuthActionResult>;
-  signUp: (email: string, password: string) => Promise<AuthActionResult>;
+  signIn: (identifier: string, password: string) => Promise<AuthActionResult>;
+  signUp: (input: SignUpInput) => Promise<AuthActionResult>;
   signOut: () => Promise<void>;
 };
 
@@ -102,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [applySession]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
+  const signIn = useCallback(async (identifier: string, password: string) => {
     const supabase = getSupabaseClient();
     if (!supabase) {
       return {
@@ -111,10 +119,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    });
+    const normalizedIdentifier = identifier.trim();
+    const isEmail = normalizedIdentifier.includes('@');
+    const normalizedPhone = normalizedIdentifier.replace(/\s+/g, '');
+
+    const { data, error } = await supabase.auth.signInWithPassword(
+      isEmail
+        ? {
+            email: normalizedIdentifier.toLowerCase(),
+            password,
+          }
+        : {
+            phone: normalizedPhone,
+            password,
+          },
+    );
 
     if (error) {
       return { success: false, message: error.message };
@@ -124,7 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: true };
   }, [applySession]);
 
-  const signUp = useCallback(async (email: string, password: string) => {
+  const signUp = useCallback(async (input: SignUpInput) => {
     const supabase = getSupabaseClient();
     if (!supabase) {
       return {
@@ -133,9 +152,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
     }
 
+    const email = input.email.trim().toLowerCase();
+    const phone = input.phoneNumber.trim().replace(/\s+/g, '');
+
+    if (!email || !input.password || !input.businessName.trim() || !phone) {
+      return {
+        success: false,
+        message: 'Please fill email, password, business name, and phone number.',
+      };
+    }
+
     const { data, error } = await supabase.auth.signUp({
-      email: email.trim().toLowerCase(),
-      password,
+      email,
+      password: input.password,
+      options: {
+        data: {
+          business_name: input.businessName.trim(),
+          business_website: input.businessWebsite?.trim() || null,
+          phone_number: phone,
+        },
+      },
     });
 
     if (error) {
