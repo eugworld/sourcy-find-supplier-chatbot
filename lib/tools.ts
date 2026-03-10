@@ -319,13 +319,8 @@ export const lookupSupplierProductsTool = tool({
       `&select=product_id,supplier_id,title,title_translated,link,image_urls,currency,stock_count,price_info,sale_count` +
       `&order=sale_count.desc.nullslast` +
       `&limit=${product_limit}`;
-    const variantsUrl =
-      `${POSTGREST_BASE_URL}/product_variants` +
-      `?product_id=${encodeURIComponent(inClause)}` +
-      `&select=product_id,price,price_currency,moq` +
-      '&limit=2000';
 
-    const [supplierResponse, productResponse, variantResponse] = await Promise.all([
+    const [supplierResponse, productResponse] = await Promise.all([
       fetchWithTimeout(
         suppliersUrl,
         {
@@ -348,17 +343,6 @@ export const lookupSupplierProductsTool = tool({
         },
         20_000,
       ),
-      fetchWithTimeout(
-        variantsUrl,
-        {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            ...getPostgrestAuthHeaders(postgrestJwt),
-          },
-        },
-        20_000,
-      ),
     ]);
 
     if (!supplierResponse.ok || !productResponse.ok) {
@@ -371,12 +355,48 @@ export const lookupSupplierProductsTool = tool({
 
     const suppliersRaw = (await supplierResponse.json()) as unknown;
     const productsRaw = (await productResponse.json()) as unknown;
-    const variantsRaw = variantResponse.ok
-      ? ((await variantResponse.json()) as unknown)
-      : [];
     const suppliers = Array.isArray(suppliersRaw) ? suppliersRaw : [];
     const products = Array.isArray(productsRaw) ? productsRaw : [];
-    const variants = Array.isArray(variantsRaw) ? variantsRaw : [];
+    const productIdsForVariants = Array.from(
+      new Set(
+        products
+          .map((row) =>
+            row && typeof row === 'object'
+              ? toStringValue((row as Record<string, unknown>).product_id)
+              : null,
+          )
+          .filter((id): id is string => Boolean(id)),
+      ),
+    );
+
+    let variants: unknown[] = [];
+    let variantsUrl: string | null = null;
+
+    if (productIdsForVariants.length > 0) {
+      const productInClause = `in.(${productIdsForVariants.join(',')})`;
+      variantsUrl =
+        `${POSTGREST_BASE_URL}/product_variants` +
+        `?product_id=${encodeURIComponent(productInClause)}` +
+        `&select=product_id,price,price_currency,moq` +
+        '&limit=2000';
+
+      const variantResponse = await fetchWithTimeout(
+        variantsUrl,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            ...getPostgrestAuthHeaders(postgrestJwt),
+          },
+        },
+        20_000,
+      );
+
+      if (variantResponse.ok) {
+        const variantsRaw = (await variantResponse.json()) as unknown;
+        variants = Array.isArray(variantsRaw) ? variantsRaw : [];
+      }
+    }
 
     const variantStatsByProductId = new Map<
       string,
