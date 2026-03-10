@@ -11,7 +11,11 @@ import { MessageList } from '@/components/chat/message-list';
 import { Header } from '@/components/ui/header';
 import { useAuth } from '@/hooks/use-auth';
 import { useChatLimit } from '@/hooks/use-chat-limit';
-import { logChatMessageEvent, getOrCreateAnonSessionId } from '@/lib/chat-logging';
+import {
+  getMessageSnapshotSignature,
+  logChatMessageEvent,
+  getOrCreateAnonSessionId,
+} from '@/lib/chat-logging';
 import { canSendMessage } from '@/lib/chat-limits';
 import { QUERY_TYPES, type QueryType } from '@/lib/constants';
 import {
@@ -49,7 +53,7 @@ export function ChatContainer() {
   const [quoteRequestText, setQuoteRequestText] = useState('');
 
   const anonSessionIdRef = useRef<string>('pending');
-  const loggedMessageIdsRef = useRef<Set<string>>(new Set());
+  const loggedMessageSnapshotsRef = useRef<Set<string>>(new Set());
 
   const { messages, sendMessage, status, error, clearError, setMessages } = useChat({
     transport: new DefaultChatTransport({ api: '/api/chat' }),
@@ -66,11 +70,14 @@ export function ChatContainer() {
 
   useEffect(() => {
     for (const message of messages) {
-      if (loggedMessageIdsRef.current.has(message.id)) {
+      const signature = getMessageSnapshotSignature(message);
+      const snapshotKey = `${message.id}::${signature}`;
+
+      if (loggedMessageSnapshotsRef.current.has(snapshotKey)) {
         continue;
       }
 
-      loggedMessageIdsRef.current.add(message.id);
+      loggedMessageSnapshotsRef.current.add(snapshotKey);
       void logChatMessageEvent({
         message,
         queryMode,
@@ -245,7 +252,7 @@ export function ChatContainer() {
     setQuoteDestination('');
     setQuoteProductNames([]);
     setQuoteRequestText('');
-    loggedMessageIdsRef.current.clear();
+    loggedMessageSnapshotsRef.current.clear();
   };
 
   return (
