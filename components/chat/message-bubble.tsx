@@ -22,6 +22,12 @@ import { ThinkingBlock } from '@/components/chat/thinking-block';
 interface MessageBubbleProps {
   message: UIMessage;
   isStreamingAssistant?: boolean;
+  quoteQuantity?: string;
+  quoteDestination?: string;
+  isCollectingQuoteDetails?: boolean;
+  onStartQuoteFlow?: (productNames: string[], requestText: string) => void;
+  onQuoteQuantityChange?: (value: string) => void;
+  onQuoteDestinationChange?: (value: string) => void;
 }
 
 function sanitizeVisibleAssistantText(text: string): string {
@@ -37,6 +43,12 @@ function sanitizeVisibleAssistantText(text: string): string {
 export function MessageBubble({
   message,
   isStreamingAssistant = false,
+  quoteQuantity = '',
+  quoteDestination = '',
+  isCollectingQuoteDetails = false,
+  onStartQuoteFlow,
+  onQuoteQuantityChange,
+  onQuoteDestinationChange,
 }: MessageBubbleProps) {
   const [isProductSidebarOpen, setIsProductSidebarOpen] = useState(false);
   const textParts = message.parts.filter((part) => part.type === 'text');
@@ -191,7 +203,19 @@ export function MessageBubble({
             <SourcingCta
               productNames={Array.from(
                 new Set(productCards.map((product) => product.productName)),
-            )}
+              )}
+              quantity={quoteQuantity}
+              destination={quoteDestination}
+              isCollectingDetails={isCollectingQuoteDetails}
+              onGetQuote={() =>
+                onStartQuoteFlow?.(
+                  Array.from(new Set(productCards.map((product) => product.productName))),
+                  fullText,
+                )
+              }
+              onQuantityChange={(value) => onQuoteQuantityChange?.(value)}
+              onDestinationChange={(value) => onQuoteDestinationChange?.(value)}
+              requestText={fullText}
           />
         ) : null}
       </div>

@@ -41,6 +41,8 @@ End each sourcing recommendation with exactly:
 Then ask the user for:
 - Quantity
 - Destination (city, country)
+Do not ask for additional data such as logo, branding, or tech pack in this stage.
+If the user already provided Quantity and Destination, respond with a short confirmation and direct handoff language to Sourcy merchandiser on WhatsApp.
 
 Be professional, practical, and transparent about uncertainty.`;
 

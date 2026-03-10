@@ -8,9 +8,24 @@ import { MessageBubble } from '@/components/chat/message-bubble';
 interface MessageListProps {
   messages: UIMessage[];
   isLoading: boolean;
+  quoteQuantity?: string;
+  quoteDestination?: string;
+  isCollectingQuoteDetails?: boolean;
+  onStartQuoteFlow?: (productNames: string[], requestText: string) => void;
+  onQuoteQuantityChange?: (value: string) => void;
+  onQuoteDestinationChange?: (value: string) => void;
 }
 
-export function MessageList({ messages, isLoading }: MessageListProps) {
+export function MessageList({
+  messages,
+  isLoading,
+  quoteQuantity = '',
+  quoteDestination = '',
+  isCollectingQuoteDetails = false,
+  onStartQuoteFlow,
+  onQuoteQuantityChange,
+  onQuoteDestinationChange,
+}: MessageListProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const bottomAnchorRef = useRef<HTMLDivElement | null>(null);
 
@@ -34,6 +49,16 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
               message.role === 'assistant' &&
               index === messages.length - 1
             }
+            quoteQuantity={quoteQuantity}
+            quoteDestination={quoteDestination}
+            isCollectingQuoteDetails={
+              isCollectingQuoteDetails &&
+              message.role === 'assistant' &&
+              index === messages.length - 1
+            }
+            onStartQuoteFlow={onStartQuoteFlow}
+            onQuoteQuantityChange={onQuoteQuantityChange}
+            onQuoteDestinationChange={onQuoteDestinationChange}
           />
         ))}
         <div ref={bottomAnchorRef} />

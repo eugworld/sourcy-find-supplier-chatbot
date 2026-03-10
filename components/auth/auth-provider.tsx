@@ -42,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authState, setAuth] = useState<AuthState>({
     isAuthenticated: false,
     email: null,
+    userId: null,
   });
   const [isReady, setIsReady] = useState(() => getSupabaseClient() === null);
   const [isUnlimitedProfile, setIsUnlimitedProfile] = useState(false);
@@ -52,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuth({
       isAuthenticated: Boolean(email),
       email,
+      userId: session?.user?.id ?? null,
     });
 
     if (!session) {
@@ -197,7 +199,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await supabase.auth.signOut();
     }
 
-    setAuth({ isAuthenticated: false, email: null });
+    setAuth({ isAuthenticated: false, email: null, userId: null });
   }, []);
 
   const value = useMemo<AuthContextValue>(

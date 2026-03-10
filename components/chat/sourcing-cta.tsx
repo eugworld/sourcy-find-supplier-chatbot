@@ -1,29 +1,43 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 interface SourcingCtaProps {
   productNames: string[];
+  quantity: string;
+  destination: string;
+  onGetQuote: () => void;
+  onQuantityChange: (value: string) => void;
+  onDestinationChange: (value: string) => void;
+  isCollectingDetails: boolean;
+  requestText: string;
 }
 
-export function SourcingCta({ productNames }: SourcingCtaProps) {
-  const [accepted, setAccepted] = useState<boolean | null>(null);
-  const [quantity, setQuantity] = useState('');
-  const [destination, setDestination] = useState('');
-
+export function SourcingCta({
+  productNames,
+  quantity,
+  destination,
+  onGetQuote,
+  onQuantityChange,
+  onDestinationChange,
+  isCollectingDetails,
+  requestText,
+}: SourcingCtaProps) {
   const whatsappUrl = useMemo(() => {
     const productText = productNames.length > 0 ? productNames.slice(0, 5).join('; ') : 'N/A';
 
     const text = [
-      'Hi Sourcy team, I would like support from a merchandiser.',
+      'Hi Sourcy team, please help me get a quotation.',
+      `Request: ${requestText || 'Supplier sourcing request'}`,
       `Products: ${productText}`,
-      `Quantity: ${quantity || 'not specified'}`,
-      `Destination: ${destination || 'not specified'}`,
-      'Please help contact suppliers and provide quotation options.',
+      `Quantity: ${quantity}`,
+      `Destination: ${destination}`,
     ].join('\n');
 
     return `https://wa.me/?text=${encodeURIComponent(text)}`;
-  }, [destination, productNames, quantity]);
+  }, [destination, productNames, quantity, requestText]);
+
+  const hasCompleteDetails = Boolean(quantity.trim() && destination.trim());
 
   return (
     <section className="rounded-xl border border-teal-100 bg-teal-50/40 p-4">
@@ -34,27 +48,20 @@ export function SourcingCta({ productNames }: SourcingCtaProps) {
       <div className="mt-3 flex gap-2">
         <button
           type="button"
-          onClick={() => setAccepted(true)}
+          onClick={onGetQuote}
           className="rounded-lg bg-teal-600 px-3 py-1.5 text-sm font-semibold text-white"
         >
-          Yes
-        </button>
-        <button
-          type="button"
-          onClick={() => setAccepted(false)}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700"
-        >
-          No
+          Get quote
         </button>
       </div>
 
-      {accepted ? (
+      {isCollectingDetails ? (
         <div className="mt-3 space-y-2">
           <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
             Quantity
             <input
               value={quantity}
-              onChange={(event) => setQuantity(event.target.value)}
+              onChange={(event) => onQuantityChange(event.target.value)}
               placeholder="e.g. 2000 pcs"
               className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-teal-400"
             />
@@ -63,20 +70,26 @@ export function SourcingCta({ productNames }: SourcingCtaProps) {
             Destination (City, Country)
             <input
               value={destination}
-              onChange={(event) => setDestination(event.target.value)}
+              onChange={(event) => onDestinationChange(event.target.value)}
               placeholder="e.g. Jakarta, Indonesia"
               className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-teal-400"
             />
           </label>
 
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white"
-          >
-            Contact Sourcy merchandiser
-          </a>
+          {hasCompleteDetails ? (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white"
+            >
+              Contact Sourcy merchandiser
+            </a>
+          ) : (
+            <p className="text-xs text-slate-600">
+              Please provide quantity and destination to continue to WhatsApp.
+            </p>
+          )}
         </div>
       ) : null}
     </section>
