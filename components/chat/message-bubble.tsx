@@ -161,6 +161,12 @@ export function MessageBubble({
           />
         ) : null}
 
+        {textParts.map((part, index) => (
+          <div key={`${message.id}-text-${index}`}>
+            <MarkdownContent content={sanitizeVisibleAssistantText(part.text)} />
+          </div>
+        ))}
+
         {filteredSupplierCards.length > 0 ? (
           <div className="space-y-3 pt-1">
             {filteredSupplierCards.map((supplier) => (
@@ -211,14 +217,6 @@ export function MessageBubble({
             {fallbackSummary}
           </div>
         ) : null}
-
-        {!hasStructuredCards
-          ? textParts.map((part, index) => (
-              <div key={`${message.id}-text-${index}`}>
-                <MarkdownContent content={sanitizeVisibleAssistantText(part.text)} />
-              </div>
-            ))
-          : null}
 
         {hasStructuredCards ? (
           <SourcingCta

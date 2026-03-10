@@ -77,7 +77,6 @@ export function ChatContainer() {
     <div className="flex h-screen flex-col">
       <Header
         isAuthenticated={isAuthenticated}
-        email={email}
         remaining={remaining}
         limit={limit}
         isUnlimited={isUnlimitedAccess}
@@ -86,7 +85,7 @@ export function ChatContainer() {
         onRefreshChat={handleRefreshChat}
       />
 
-      <main className="flex-1 overflow-hidden bg-[radial-gradient(circle_at_8%_10%,#e8f6f3,transparent_40%),radial-gradient(circle_at_90%_90%,#f4f7f7,transparent_38%),#fafaf9]">
+      <main className="flex-1 overflow-hidden bg-slate-50">
         {messages.length === 0 ? (
           <EmptyState onSuggestionClick={setInput} />
         ) : (
@@ -124,7 +123,7 @@ export function ChatContainer() {
         disabled={isLoading}
         isLoading={isLoading}
       />
-      <div className="mx-auto mb-3 flex w-full max-w-3xl items-center justify-between px-4 text-[11px] text-slate-500 sm:px-6">
+      <div className="mx-auto mb-2 flex w-full max-w-4xl flex-col gap-1 px-3 text-[11px] text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-4">
         <p>AI can make mistakes. Please verify supplier and product details.</p>
         <a
           href="https://sourcy.ai"

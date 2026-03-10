@@ -45,8 +45,8 @@ export function ChatInput({
   };
 
   return (
-    <div className="border-t border-slate-200 bg-white/90 px-4 py-2 backdrop-blur-sm sm:px-6">
-      <div className="mx-auto w-full max-w-2xl">
+    <div className="border-t border-slate-200 bg-white px-3 py-2 sm:px-4">
+      <div className="mx-auto w-full max-w-4xl">
         <div className="flex items-end gap-2 rounded-xl border border-slate-300 bg-white px-2.5 py-1 shadow-sm focus-within:border-teal-400 focus-within:ring-2 focus-within:ring-teal-100">
           <textarea
             ref={textareaRef}
@@ -87,20 +87,13 @@ export function ChatInput({
             </select>
           </label>
 
-          <div className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-2 py-1 text-slate-600">
-            <span>Thinking</span>
-            <span className="font-medium text-slate-700">
-              {queryMode === QUERY_TYPES.DEEP ? 'High' : 'Medium'}
-            </span>
-          </div>
-
           {isLoading ? (
             <span className="ml-auto inline-flex items-center gap-2 text-xs font-medium text-slate-500">
               <span
                 className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-300 border-t-teal-600"
                 aria-hidden="true"
               />
-              Generating response...
+              Searching...
             </span>
           ) : null}
         </div>
