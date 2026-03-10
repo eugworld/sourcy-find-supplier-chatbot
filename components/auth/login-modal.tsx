@@ -15,7 +15,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   const [identifier, setIdentifier] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [businessWebsite, setBusinessWebsite] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -36,7 +37,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setInfo(null);
     setIsSubmitting(true);
 
-    const result = await signIn(identifier, password);
+    const result = await signIn(identifier, loginPassword);
     setIsSubmitting(false);
 
     if (!result.success) {
@@ -54,7 +55,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
     const result = await signUp({
       email,
-      password,
+      password: registerPassword,
       businessName,
       businessWebsite,
       phoneNumber,
@@ -126,18 +127,34 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           }}
         >
           {mode === 'signin' ? (
-            <label className="block text-sm font-medium text-slate-700">
-              Email or phone number
-              <input
-                type="text"
-                required
-                disabled={isSubmitting}
-                value={identifier}
-                onChange={(event) => setIdentifier(event.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-teal-500 placeholder:text-slate-400 focus:ring-2"
-                placeholder="you@company.com or +628..."
-              />
-            </label>
+            <>
+              <label className="block text-sm font-medium text-slate-700">
+                Email or phone number
+                <input
+                  type="text"
+                  required
+                  disabled={isSubmitting}
+                  value={identifier}
+                  onChange={(event) => setIdentifier(event.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-teal-500 placeholder:text-slate-400 focus:ring-2"
+                  placeholder="you@company.com or +628..."
+                />
+              </label>
+
+              <label className="block text-sm font-medium text-slate-700">
+                Password
+                <input
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                  disabled={isSubmitting}
+                  value={loginPassword}
+                  onChange={(event) => setLoginPassword(event.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-teal-500 placeholder:text-slate-400 focus:ring-2"
+                  placeholder="••••••••"
+                />
+              </label>
+            </>
           ) : (
             <>
               <label className="block text-sm font-medium text-slate-700">
@@ -179,22 +196,22 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   placeholder="+628123456789"
                 />
               </label>
+
+              <label className="block text-sm font-medium text-slate-700">
+                Password
+                <input
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  disabled={isSubmitting}
+                  value={registerPassword}
+                  onChange={(event) => setRegisterPassword(event.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-teal-500 placeholder:text-slate-400 focus:ring-2"
+                  placeholder="••••••••"
+                />
+              </label>
             </>
           )}
-
-          <label className="block text-sm font-medium text-slate-700">
-            Password
-            <input
-              type="password"
-              required
-              autoComplete="current-password"
-              disabled={isSubmitting}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-teal-500 placeholder:text-slate-400 focus:ring-2"
-              placeholder="••••••••"
-            />
-          </label>
 
           {mode === 'signup' ? (
             <label className="block text-sm font-medium text-slate-700">
@@ -225,14 +242,6 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 : mode === 'signin'
                 ? 'Login'
                 : 'Register'}
-            </button>
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-            >
-              {mode === 'signin' ? 'Register' : 'Login'}
             </button>
           </div>
         </form>
